@@ -1,0 +1,10 @@
+version: '3'
+services:
+  catbot:
+    build: .
+    volumes:
+      - ./src:/app/src         # исходный код
+      - ./data:/app/data       # база
+    env_file:
+      - .env
+    restart: unless-stopped
