@@ -13,6 +13,7 @@ import { DateTime } from 'luxon';
 
 const TOKEN = process.env.BOT_TOKEN;
 const ACCESS_CODE = process.env.ACCESS_CODE;
+const NOTIFICATIONS_INTERVAL_HOURS = process.env.NOTIFICATIONS_INTERVAL_HOURS || 8;
 
 if (!TOKEN) throw new Error('No BOT_TOKEN in env');
 if (!ACCESS_CODE) throw new Error('No ACCESS_CODE in env');
@@ -26,6 +27,7 @@ const tempState = {};
 bot.onText(/\/start/, async msg => {
 	const chatId = msg.chat.id;
 	const user = await getUserByTgId(chatId);
+
 	if (!user) {
 		tempState[chatId] = 'WAIT_CODE';
 		bot.sendMessage(chatId, 'Введите код доступа:');
@@ -107,7 +109,7 @@ async function remindIfNeeded() {
 	const lastRemind = await getLastRemindTime();
 	const hourSinceLastRemind = lastRemind ? (now - lastRemind) / 1000 / 60 / 60 : Infinity;
 
-	if (hoursPassed >= 8 && hourSinceLastRemind >= 1) {
+	if (hoursPassed >= NOTIFICATIONS_INTERVAL_HOURS && hourSinceLastRemind >= 1) {
 		const users = await getAllUsers();
 		for (const u of users) {
 			await bot.sendMessage(
