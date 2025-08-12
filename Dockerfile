@@ -15,4 +15,4 @@ RUN mkdir -p /app/data
 VOLUME ["/app/data"]
 
 # Запускаем бот
-CMD ["node", "src/bot.js"]
+CMD ["node", "src/app.js"]

@@ -2,9 +2,10 @@ version: '3'
 services:
   catbot:
     build: .
+    ports:
+      - "8124:8124"
     volumes:
       - ./src:/app/src         # исходный код
       - ./data:/app/data       # база
     env_file:
       - .env
-    restart: unless-stopped

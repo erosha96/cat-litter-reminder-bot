@@ -20,23 +20,33 @@ export async function initDb() {
             clean_time DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES users(id)
         );
-        CREATE TABLE IF NOT EXISTS reminders (
-            id INTEGER PRIMARY KEY CHECK (id = 0),
-            last_remind DATETIME
-            );
-        INSERT OR IGNORE INTO reminders (id, last_remind) VALUES (0, NULL);
+				CREATE TABLE IF NOT EXISTS reminders (
+						 id INTEGER PRIMARY KEY AUTOINCREMENT,
+						 type TEXT NOT NULL,
+						 last_remind DATETIME
+				);
+				INSERT OR IGNORE INTO reminders (id, type, last_remind ) VALUES (1, 'time', NULL);
+    		INSERT OR IGNORE INTO reminders (id, type, last_remind) VALUES (2, 'count', NULL);
+
+        CREATE TABLE IF NOT EXISTS litters (
+	    			id INTEGER PRIMARY KEY AUTOINCREMENT,
+						name TEXT,
+						entity_id TEXT
+        );
+				INSERT OR IGNORE INTO litters (id, name, entity_id) VALUES (1, 'Гостиная', 'counter.living_room_litter');
+				INSERT OR IGNORE INTO litters (id, name, entity_id) VALUES (2, 'Прихожая', 'counter.hall_litter');
     `);
 }
 
-export async function getLastRemindTime() {
+export async function getLastRemindTime(type) {
 	const db = await dbPromise;
-	const row = await db.get(`SELECT last_remind FROM reminders WHERE id = 0`);
+	const row = await db.get(`SELECT last_remind FROM reminders WHERE type = ?`, [type]);
 	return row?.last_remind ? new Date(row.last_remind) : null;
 }
 
-export async function setLastRemindTime(time) {
+export async function setLastRemindTime(type, time) {
 	const db = await dbPromise;
-	await db.run(`UPDATE reminders SET last_remind = ? WHERE id = 0`, [time.toISOString()]);
+	await db.run(`UPDATE reminders SET last_remind = ? WHERE type = ?`, [time ? time.toISOString() : null, type]);
 }
 
 export async function addUser(tg_id, name) {
@@ -66,4 +76,9 @@ export async function getLastClean() {
         LEFT JOIN users u ON c.user_id = u.id
         ORDER BY clean_time DESC LIMIT 1
     `);
+}
+
+export async function getLitters() {
+	const db = await dbPromise;
+	return db.all(`SELECT * FROM litters`);
 }

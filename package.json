@@ -10,6 +10,9 @@
     "prettier:fix": "prettier --write ./src"
   },
   "dependencies": {
+    "axios": "^1.11.0",
+    "body-parser": "^2.2.0",
+    "express": "^5.1.0",
     "luxon": "^3.6.1",
     "node-telegram-bot-api": "^0.66.0",
     "sqlite": "^5.1.1",
