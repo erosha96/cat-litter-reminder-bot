@@ -9,3 +9,4 @@ services:
       - ./data:/app/data       # база
     env_file:
       - .env
+    restart: unless-stopped
