@@ -27,7 +27,7 @@ export class HaClient {
 			const { data } = await axios.get(`${URL}/api/states/${entityId}`, {
 				headers: { Authorization: `Bearer ${TOKEN}` },
 			});
-			return { state: data.state, entityId };
+			return { count: data.state, entityId };
 		};
 
 		try {
