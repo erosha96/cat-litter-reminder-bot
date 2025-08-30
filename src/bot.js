@@ -20,19 +20,13 @@ const StringCommands = {
 	ADD_CLEAN: '🧹 Я убрал у котов',
 	LAST_CLEAN: '🕒 Когда убирали в последний раз?',
 	COUNTER: '🐾 Сколько раз коты сходили?',
+	CLEANING_ON: '🚽 Включить уборку',
+	CLEANING_OFF: '🚽 Выключить уборку',
 };
 
 const ChatStates = {
 	WAIT_CODE: 'WAIT_CODE',
 	ASK_NAME: 'ASK_NAME',
-};
-
-const menu = {
-	reply_markup: {
-		keyboard: [[StringCommands.ADD_CLEAN, StringCommands.COUNTER, StringCommands.LAST_CLEAN]],
-		resize_keyboard: true,
-		one_time_keyboard: false,
-	},
 };
 
 const hoursFromTime = lastTime => {
@@ -47,8 +41,28 @@ export class Bot {
 		this.bot = null;
 		this.chatStates = {};
 		this.ignoreOutsideReset = false;
+		this.ignoreOutsideCleanMode = false;
+		this.cleanModeEnabled = false;
 		this.onReset = () => {};
+		this.onCleanModeChange = () => {};
 		this.init();
+	}
+
+	buildMenu() {
+		let cleanModeKey = StringCommands.CLEANING_ON;
+		if (this.cleanModeEnabled) {
+			cleanModeKey = StringCommands.CLEANING_OFF;
+		}
+		return {
+			reply_markup: {
+				keyboard: [
+					[StringCommands.ADD_CLEAN, cleanModeKey],
+					[StringCommands.LAST_CLEAN, StringCommands.COUNTER],
+				],
+				resize_keyboard: true,
+				one_time_keyboard: false,
+			},
+		};
 	}
 
 	async init() {
@@ -94,6 +108,43 @@ export class Bot {
 		if (text === StringCommands.COUNTER) {
 			await this.sendCounterMessage(user);
 		}
+		if (text === StringCommands.CLEANING_ON) {
+			await this.setCleaningMode(user, true);
+		}
+
+		if (text === StringCommands.CLEANING_OFF) {
+			await this.setCleaningMode(user, false);
+		}
+	}
+
+	async setCleaningMode(user, enabled) {
+		try {
+			this.cleanModeEnabled = enabled;
+			this.ignoreOutsideCleanMode = true;
+			this.onCleanModeChange(enabled);
+			await this.sendCleaningModeMessage(user);
+		} catch (e) {
+			console.error('Ошибка при управлении режимом уборки:', e);
+			await this.bot.sendMessage(user.tg_id, '⚠️ Не удалось изменить режим уборки.');
+		}
+	}
+
+	async setCleaningModeOutside(enabled) {
+		if (this.ignoreOutsideCleanMode && enabled === this.cleanModeEnabled) {
+			this.ignoreOutsideCleanMode = false;
+			return;
+		}
+
+		this.cleanModeEnabled = enabled;
+		await this.sendCleaningModeMessage();
+	}
+
+	async sendCleaningModeMessage(user = {}) {
+		const userName = user.name ? user.name : 'Кто-то';
+		const text = this.cleanModeEnabled
+			? `🚽 ${userName} начал убираться!\n🧹 Режим уборки включен.\n⏸️ Счётчики временно приостановлены.`
+			: `✅ Режим уборки отключен.\n📊 Считаем походы в лотки дальше 🐾`;
+		await this.sendBroadcastMessage({ text });
 	}
 
 	async sendLastCleanMessage(user) {
@@ -226,6 +277,7 @@ export class Bot {
 		const littersString = litters.map(l => `${l.name}: ${l.value}`).join('\n');
 		await this.sendBroadcastMessage({
 			text: randomText([
+				`📈 Вот это они насрали!\n\n${littersString}\n\nСовок в руки и вперед 😺`,
 				`📈 Котики сегодня активны!\n\n${littersString}\n\nПора навести чистоту 🧹✨`,
 				`🐾 Много следов в лотке!\n\n${littersString}\n\nЛучше прибраться 🧼`,
 				`🧻 Лоток используется часто:\n\n${littersString}\n\nМожет, пора убраться?`,
@@ -284,10 +336,10 @@ export class Bot {
 	}
 
 	async sendMessageWithMenu(chatId, text = '📋 Меню:') {
-		await this.bot.sendMessage(chatId, text, menu);
+		await this.bot.sendMessage(chatId, text, this.buildMenu());
 	}
 
 	async sendMainMenu(chatId) {
-		await this.bot.sendMessage(chatId, '⬇️ Выбери, что сделать дальше:', menu);
+		await this.bot.sendMessage(chatId, '⬇️ Выбери, что сделать дальше:', this.buildMenu());
 	}
 }

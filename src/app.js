@@ -25,8 +25,16 @@ bot.onReset = async () => {
 	await haClient.resetCounter();
 };
 
+bot.onCleanModeChange = async enabled => {
+	await haClient.setCleaning(enabled);
+};
+
 haWebhook.onReset = async () => {
 	await bot.littersCleanedOutside();
+};
+
+haWebhook.onCleanModeChange = async enabled => {
+	await bot.setCleaningModeOutside(enabled);
 };
 
 haWebhook.onIncrement = async () => {

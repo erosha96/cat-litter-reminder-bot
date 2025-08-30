@@ -27,15 +27,35 @@ export class HaClient {
 			const { data } = await axios.get(`${URL}/api/states/${entityId}`, {
 				headers: { Authorization: `Bearer ${TOKEN}` },
 			});
-			return { count: data.state, entityId };
+			return { state: data.state, entityId };
 		};
 
 		try {
 			const states = await Promise.all(entityIds.map(getLitterState));
 			return states;
 		} catch (error) {
+			console.log(error);
 			console.error('Ошибка при получении состояний:', error.message);
 			return [];
+		}
+	}
+
+	async setCleaning(enabled) {
+		const service = enabled ? 'turn_on' : 'turn_off';
+
+		try {
+			const { data } = await axios.post(
+				`${URL}/api/services/switch/${service}`,
+				{ entity_id: 'switch.cat_cleaning' },
+				{
+					headers: {
+						Authorization: `Bearer ${TOKEN}`,
+						'Content-Type': 'application/json',
+					},
+				}
+			);
+		} catch (error) {
+			console.error(`Ошибка при ${enabled ? 'включении' : 'выключении'} уборки:`, error.message);
 		}
 	}
 }

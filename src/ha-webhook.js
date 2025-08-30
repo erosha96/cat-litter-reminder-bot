@@ -15,6 +15,10 @@ export class HaWebhook {
 				if (type === 'counter_reset') {
 					await this.onReset();
 				}
+				if (type === 'clean_mode') {
+					const { enabled, silent = false } = req.body || {};
+					await this.onCleanModeChange(enabled, { silent });
+				}
 				res.sendStatus(200);
 			} catch (e) {
 				console.error(e);
@@ -28,5 +32,6 @@ export class HaWebhook {
 
 		this.onIncrement = () => {};
 		this.onReset = () => {};
+		this.onCleanModeChange = () => {};
 	}
 }
