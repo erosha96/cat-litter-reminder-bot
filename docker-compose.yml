@@ -1,12 +1,28 @@
-version: '3'
 services:
-  catbot:
-    build: .
+  catbot-xray-tun:
+    image: teddysun/xray:latest
+    container_name: xray-tun
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: "1"
+    volumes:
+      - ./xray/config.json:/etc/xray/config.json:ro
     ports:
       - "8124:8124"
+
+  catbot:
+    build: .
+    container_name: catbot
+    restart: unless-stopped
+    depends_on:
+      - catbot-xray-tun
+    network_mode: "service:catbot-xray-tun"
     volumes:
-      - ./src:/app/src         # исходный код
-      - ./data:/app/data       # база
+      - ./src:/app/src
+      - ./data:/app/data
     env_file:
       - .env
-    restart: unless-stopped

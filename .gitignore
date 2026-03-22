@@ -9,6 +9,8 @@ lerna-debug.log*
 
 .idea
 
+xray/config.json
+
 *.sqlite
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
