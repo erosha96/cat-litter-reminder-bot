@@ -1,6 +1,6 @@
 services:
   catbot-xray-tun:
-    image: teddysun/xray:latest
+    build: ./vless-helper
     container_name: xray-tun
     restart: unless-stopped
     cap_add:
@@ -13,6 +13,8 @@ services:
       - ./xray/config.json:/etc/xray/config.json:ro
     ports:
       - "8124:8124"
+    environment:
+      XRAY_VPS_HOST: ${XRAY_VPS_HOST}
 
   catbot:
     build: .
